@@ -2,12 +2,41 @@
 
 # MedPerf
 
-Medperf is an open benchmarking platform for medical artificial intelligence using Federated Evaluation. MedPerf focuses on broadening data access during AI model evaluation to ensure accurate and reliable assessment of model generalization and improve clinician and patient confidence in AI. Furthermore, MedPerf provides the opportunity for the medical and technical community to establish benchmarks and related best practices for medical AI solutions.
+MedPerf is an open benchmarking platform for medical artificial intelligence using Federated Evaluation. MedPerf focuses on broadening data access during AI model evaluation to ensure accurate and reliable assessment of model generalization and improve clinician and patient confidence in AI. Furthermore, MedPerf provides the opportunity for the medical and technical community to establish benchmarks and related best practices for medical AI solutions.
 
-## MedPerf consists out of three important components:
+## Benchmarks
+
+A benchmark enables quantitative measurement of the performance of AI models for specific clinical tasks, and consists of the following components:
+- Specifications: The task on which trained AI models are evaluated, and further details about the methodology
+- Dataset Preparation: The process of preparing datasets for use in evaluation, and evaluation of these datasets
+- Registered Datasets: A list of prepared and approved datasets 
+- Reference Implementation: An example benchmark submission consisting of example model, evaluation and publicly available or synthetic data
+- Registered Models: A list of registered models to run this benchmark
+- Evaluation Metrics: The implementation of the evaluation metrics to be applied on the output of the model
+- Documentation: To make the benchmark more understandable and usable.
+
+## MLCubes
+
+Multiple MedPerf benchmark components make use of [MLCubes](https://mlcommons.github.io/mlcube/). MLCubes are software containers with standard metadata and a consistent file-system level interface. MLCubes ensure that models are easily portable and reproducible by allowing the infrastructure software to easily interact with models implemented using different approaches or frameworks and more. 
+MLCubes are for example used in Dataset preparation, Evaluation Metrics and the Registered Models.
+
+## Datasets
+
+MedPerf uses multiple datasets for each of the benchmarks. A Dataset can be registered by a Data Owner with the MedPerf server. To register their dataset, the data owner must first download the benchmark pipeline, which includes the data preparation MLCube. The Data Owner then follows the constructions given by the benchmark on how to prepare the data and process it with the data preparation MLCube. At the end of this process, the Data Preparation MLCube will output a Dataset registration file which contains the results of the data sanity-checks and summary statistics required by the benchmark.
+
+## MedPerf platform
+The benchmarks described above can be ran on the MedPerf platform.
+MedPerf consists out of three important components.
 -	A server, which uses a database to store the information necessary to coordinate experiments and support user management. For example, how to get, verify and run MLCubes, what private datasets are available to and compatible with a given benchmark and which models have been evaluated against which datasets under which metrics. No code is stored on the server.
--	The clients, running the MedPerf client application that can use this server to carry out experiments. To interact with the client, the CLI interface can be used.
+-	The client, that can use this server to carry out experiments. To interact with the client, the CLI (Command Line Interface) can be used.
 -	The cloud file servers and container repositories, hosting MLCubes, e.g. dockerHub.
+
+## Workflow
+To describe how the benchmarks are developed on the MedPerf platform, here we give an end-to-end workflow example.
+- A benchmark is registered by a benchmark owner using the MedPerf client. The benchmark owner uploads the data preparation, reference model and evaluation metrics MLCubes to a container repository, and then registers them using the MedPerf server. The benchmark owner then submits the benchmark registration including required benchmark metadata.
+- The model owner uploads the model MLCubes to a container repository, then registers them with the MedPerf Server. The model owner may then request inclusion of models in compatible benchmarks.
+- The data owner downloads the metadata for the data preparation, reference model and evaluation metrics MLCubes from the MedPerf server. The MedPerf client uses these metadata to download and verify the corresponding MLCubes. The data owner then runs the data preparation steps and submits the registration output by the data preparation MLCube to the MedPerf server.
+- To execute the benchmark, the data owner downloads the metadata for the model MLCubes used in the benchmark. The MedPerf client uses these metadata to download and verify the corresponding MLCubes. For each model, the data owner executes the model -> evaluation metrics pipeline and uploads the results files output by the evaluation metrics MLCube to the MedPerf server.
 
 ## How to run
 In order to run MedPerf locally, you must host the server in your machine, and install the CLI.

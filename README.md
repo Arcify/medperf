@@ -47,12 +47,111 @@ In order to run MedPerf locally, you must host the server in your machine, and i
    ```
    pip install mlcube mlcube-docker mlcube-singularity
    ```
-
-2. ## Host the server:
-    To host the server, please follow the instructions inside the [`server/README.md`](server/README.md) file.
+2. ## Host the server
+   To access the MedPerf server, please follow the instructions inside the [`server/README.md`](server/README.md) file. The MedPerf server is used to access the datasets, run and implement MLCubes and obtain information about models.
 
 3. ## Install the CLI:
-   To install the CLI, please follow the instructions inside the [`cli/README.md`](cli/README.md) file.
+   To install the CLI, please follow the instructions inside the [`cli/README.md`](cli/README.md) file. The CLI allows the user to specify commands through a command prompt.
+
+## MedPerf usage
+There are various things the user can do on the MedPerf platform. Here, an explanation is given of some of the common actions.
+
+### Implementing MLCubes
+To develop a benchmark, three MLCubes have to be implemented:
+- Data Preparator MLCube
+- Reference Model MLCube
+- Evaluator MLCube
+What these MLCubes are and how they are build can be found [here](https://github.com/aristizabal95/mlcube_examples/tree/medperf-examples/medperf/data_preparator)
+
+To store the implemented MLCube, we expect the following to be present:
+- The MLCube manifest (mlcube.yaml) and the parameters file (parameters.yaml)
+- The MLCube image must be publicly available through docker hub.
+- Additional files (those contained inside the mlcube/workspace/additional_files directory) must be compressed as a .tar.gz file and publicly hosted somewhere on the internet.
+
+### Developing datasets
+To test the implemented MLCubes, a dataset should be hosted. It is up to the user what the content of this dataset is.
+Demo datasets must be compressed as a .tar.gz file, and at the root there should be a paths.yaml file with the following structure:
+
+```
+data_path: <DATA_PATH>
+labels_path: <LABELS_PATH>
+```
+Where:
+data_path: path relative to the location of the paths.yaml file that should be used as data_path input for the Data Preparator MLCube
+labels_path: path relative to the location of the paths.yaml file that should be used as labels_path input for the Data Preparator MLCube
+
+
+### Test your implemenetation
+You can test your benchmark workflow before submitting anything to the platform. To do this, run the following command:
+```
+medperf test -p path/to/data_preparator/mlcube -m path/to/model/mlcube -e path/to/evaluator/mlcube -d <demo_dataset hash>
+```
+
+### Submit MLCubes
+In order to submit your MLCubes to the MedPerf platform, run the following command:
+```
+medperf mlcube submit
+```
+Through the command prompt, you will be asked several questions regarding the MLCube.
+
+### Submit benchmark
+To submit your benchmark to the MedPerf platform, run the command:
+```
+medperf benchmark submit
+```
+Again, you will be asked several questions regarding the submission of the benchmark via the command prompt. The platform will run compatibility tests to ensure all requested information is correct.
+
+### Adding new models
+Models can be added for comparison on different benchmarks.
+A new MLCube must be created, that follows the expected I/O of the benchmark, to do this. 
+To test whether the model does this, the following command can be ran:
+```
+medperf test -b <benchmark_uid> -m <path/to/model/mlcube>
+```
+When the test passed, the model can be submitted to the MedPerf platform. An association to the benchmark can be created as follows:
+```
+	medperf [benchmark|mlcube] associate -m <mlcube_uid> -b <benchmark_uid>
+```
+Once an association is created, the other user must approve it. If the association is between two assets that you own, then it will be automatically approved and you can start using the model with your benchmark.
+
+### Preparing datasets
+To prepare a dataset for use in a benchmark, run the following command:
+```
+medperf dataset create -b <benchmark_uid> -d <path/to/data> -l <path/to/labels>
+```
+This command will execute the data preparation step with the data provided, and additionally will ask if you want to submit and associate the dataset with the benchmark. 
+
+### Approving associations
+For both adding a model or a dataset to a benchmark, an association must be created and approved by the benchmark owner and the other asset owner. If the owner of all assets is the same user, then approval is done automatically. 
+You can see all your associations with the following command:
+```
+medperf association ls
+```
+Additionally, you may filter associations by their approval status
+```
+medperf association ls [pending | approved | rejected]
+```
+
+If you have any pending associations created by other users, you can approve/reject them with:
+```
+medperf association [approve|reject] -b <benchmark_uid> [-m <model_uid> | -d <dataset_uid>]
+```
+
+### Obtaining the reuslts
+You can obtain metrics for a given benchmark, dataset and model with the following command:
+```
+medperf result create -b <benchmark_uid> -d <dataset_uid> -m <model_uid>
+```
+Both the dataset and the model must have an approved association with the benchmark.
+This command will additionally try to submit the results under the user’s approval. If submissions is canceled by the user, it can always be done again with:
+```
+medperf result submit -b <benchmark_uid> -d <dataset_uid> -m <model_uid>
+```
+
+You can get information about your results with:
+```
+medperf result ls
+```
 
 ## Demo
 The server comes with prepared users and cubes for demonstration purposes. A toy benchmark was created beforehand for benchmarking XRay models. To execute it you need to:
